@@ -5,17 +5,21 @@ frameworkVersion: '3'
 useDotenv: true
 
 plugins:
-  - serverless-plugin-typescript 
+  - serverless-plugin-typescript
+  - serverless-dynamodb-local
   - serverless-offline
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   region: eu-west-2
   timeout: 30
   memorySize: 256
+  logRetentionInDays: 90
   environment:
     DYNAMODB_QUESTIONS_TABLE:  ${self:service}-${env:QUESTIONS_TABLE}-${sls:stage}
+  apiGateway:
+    shouldStartNameWithService: true
   iam:
     role:
       statements:
@@ -45,7 +49,7 @@ functions:
           path: questions
           method: get
           cors: true
-        
+
   get:
     handler: src/handlers/get.get
     events:
@@ -53,14 +57,14 @@ functions:
           path: questions/{id}
           method: get
           cors: true
-        
+
   update:
     handler: src/handlers/update.update
     events:
       - http:
           path: questions/{id}
           method: put
-          cors: true        
+          cors: true
 
 resources:
   Resources:
@@ -80,3 +84,12 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.DYNAMODB_QUESTIONS_TABLE}
+
+package:
+  individually: true
+
+custom:
+  logLevelMap:
+    prod: info
+    staging: info
+  logLevel: ${self:custom.logLevelMap.${sls:stage}, 'debug'}

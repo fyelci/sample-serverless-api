@@ -1,36 +1,29 @@
-'use strict';
+import 'source-map-support/register';
+import {
+  APIGatewayEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+  Context,
+} from 'aws-lambda';
+import { getQuestion } from '../repositories/question.repository';
+import { logger } from '../util/logger';
 
-import { DynamoDB } from 'aws-sdk'
+export const get: APIGatewayProxyHandler = async (
+  event: APIGatewayEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
+  logger.defaultMeta = { requestId: context.awsRequestId };
 
-const dynamoDb = new DynamoDB.DocumentClient()
-
-
-module.exports.get = (event, context, callback) => {
-  const params = {
-    TableName: process.env.DYNAMODB_QUESTIONS_TABLE,
-    Key: {
-      id: event.pathParameters.id,
-    },
-  };
-
-  // fetch todo from the database
-  dynamoDb.get(params, (error, result) => {
-    // handle potential errors
-    if (error) {
-      console.error(error);
-      callback(null, {
-        statusCode: error.statusCode || 501,
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t fetch the todo item.',
-      });
-      return;
-    }
-
-    // create a response
-    const response = {
+  const question = await getQuestion(event.pathParameters.id);
+  if (question) {
+    return {
       statusCode: 200,
-      body: JSON.stringify(result.Item),
+      body: JSON.stringify(question),
     };
-    callback(null, response);
-  });
+  } else {
+    return {
+      statusCode: 404,
+      body: 'Not Found',
+    };
+  }
 };

@@ -1,59 +1,35 @@
-'use strict';
+import 'source-map-support/register';
+import {
+  APIGatewayEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+  Context,
+} from 'aws-lambda';
 
-const AWS = require('aws-sdk'); // eslint-disable-line import/no-extraneous-dependencies
+import { UpdateQuestionRequest } from '../types/question.interface';
+import { updateQuestion } from '../repositories/question.repository';
+import { logger } from '../util/logger';
 
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
+export const update: APIGatewayProxyHandler = async (
+  event: APIGatewayEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
+  logger.defaultMeta = { requestId: context.awsRequestId };
 
-module.exports.update = (event, context, callback) => {
-  const timestamp = new Date().getTime();
-  const data = JSON.parse(event.body);
+  const data: UpdateQuestionRequest = JSON.parse(event.body);
 
   // validation
   if (typeof data.text !== 'string' || typeof data.answered !== 'boolean') {
-    console.error('Validation Failed');
-    callback(null, {
+    logger.error('Validation Failed', data);
+    return {
       statusCode: 400,
-      headers: { 'Content-Type': 'text/plain' },
-      body: 'Couldn\'t update the todo item.',
-    });
-    return;
+      body: "Couldn't update the question. Please check your input",
+    };
   }
 
-  const params = {
-    TableName: process.env.DYNAMODB_QUESTIONS_TABLE,
-    Key: {
-      id: event.pathParameters.id,
-    },
-    ExpressionAttributeNames: {
-      '#todo_text': 'text',
-    },
-    ExpressionAttributeValues: {
-      ':text': data.text,
-      ':answered': data.answered,
-      ':updatedAt': timestamp,
-    },
-    UpdateExpression: 'SET #todo_text = :text, answered = :answered, updatedAt = :updatedAt',
-    ReturnValues: 'ALL_NEW',
+  await updateQuestion(event.pathParameters.id, data);
+  return {
+    statusCode: 200,
+    body: 'Updated',
   };
-
-  // update the todo in the database
-  dynamoDb.update(params, (error, result) => {
-    // handle potential errors
-    if (error) {
-      console.error(error);
-      callback(null, {
-        statusCode: error.statusCode || 501,
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t fetch the todo item.',
-      });
-      return;
-    }
-
-    // create a response
-    const response = {
-      statusCode: 200,
-      body: JSON.stringify(result.Attributes),
-    };
-    callback(null, response);
-  });
 };

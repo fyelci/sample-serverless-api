@@ -1,45 +1,51 @@
-'use strict'
+import * as uuid from 'uuid';
+import 'source-map-support/register';
+import {
+  APIGatewayEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+  Context,
+} from 'aws-lambda';
 
-import * as uuid from 'uuid'
+import { Question, CreateQuestionRequest } from '../types/question.interface';
+import { createQuestion } from '../repositories/question.repository';
+import { logger } from '../util/logger';
 
-import { DynamoDB } from 'aws-sdk'
+export const create: APIGatewayProxyHandler = async (
+  event: APIGatewayEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
+  logger.defaultMeta = { requestId: context.awsRequestId };
 
-const dynamoDb = new DynamoDB.DocumentClient()
-
-module.exports.create = (event, context, callback) => {
-  const timestamp = new Date().getTime()
-  const data = JSON.parse(event.body)
+  const timestamp = new Date().getTime();
+  const data: CreateQuestionRequest = JSON.parse(event.body);
   if (typeof data.text !== 'string') {
-    console.error('Validation Failed')
-    callback(new Error('Couldn\'t create the todo item.'))
-    return
+    return {
+      statusCode: 400,
+      body: 'Validation Failed',
+    };
   }
 
-  const params = {
-    TableName: process.env.DYNAMODB_QUESTIONS_TABLE,
-    Item: {
-      id: uuid.v1(),
-      text: data.text,
-      answered: false,
-      createdAt: timestamp,
-      updatedAt: timestamp
-    }
-  }
+  const question: Question = {
+    id: uuid.v1(),
+    text: data.text,
+    answered: false,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
 
-  // write the todo to the database
-  dynamoDb.put(params, (error, result) => {
-    // handle potential errors
-    if (error) {
-      console.error(error)
-      callback(new Error('Couldn\'t create the todo item.'))
-      return
-    }
+  try {
+    await createQuestion(question);
 
-    // create a response
-    const response = {
+    return {
       statusCode: 200,
-      body: JSON.stringify(params.Item)
-    }
-    callback(null, response)
-  })
-}
+      body: JSON.stringify(question),
+    };
+  } catch (err) {
+    logger.error('Error while creating todo');
+    return {
+      statusCode: 500,
+      body: 'Internal server error',
+    };
+  }
+};
