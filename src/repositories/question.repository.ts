@@ -39,10 +39,29 @@ export async function updateQuestion(id: string, data: UpdateQuestionRequest): P
     },
     ExpressionAttributeValues: {
       ':text': data.text,
-      ':answered': data.answered,
+      ':answers': data.answers,
+      ':explanation': data.explanation,
       ':updatedAt': timestamp,
     },
-    UpdateExpression: 'SET #question_text = :text, answered = :answered, updatedAt = :updatedAt',
+    UpdateExpression:
+      'SET #question_text = :text, answers = :answers, explanation = :explanation, updatedAt = :updatedAt',
+    ReturnValues: 'ALL_NEW',
+  };
+
+  const result = await ddbDocClient.send(new UpdateCommand(params));
+  logger.info('Update result', result);
+}
+
+export async function setImagePath(id: string, image: string): Promise<void> {
+  const timestamp = new Date().getTime();
+  const params: UpdateCommandInput = {
+    TableName: questionsTable,
+    Key: { id },
+    ExpressionAttributeValues: {
+      ':image': image,
+      ':updatedAt': timestamp,
+    },
+    UpdateExpression: 'SET image = :image, updatedAt = :updatedAt',
     ReturnValues: 'ALL_NEW',
   };
 

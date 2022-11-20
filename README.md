@@ -27,7 +27,7 @@ it will result something like this:
 
 You can create, retrieve, update, or delete questions with the following commands:
 
-### Create a Todo
+### Create a question
 
 ```bash
 curl -X POST https://XXXXXXX.execute-api.us-east-1.amazonaws.com/dev/questions --data '{ "text": "Learn Serverless" }'
@@ -49,7 +49,7 @@ Example output:
 [{"text":"Deploy my first service","id":"ac90feaa11e6-9ede-afdfa051af86","answered":true,"updatedAt":1479139961304},{"text":"Learn Serverless","id":"206793aa11e6-9ede-afdfa051af86","createdAt":1479139943241,"answered":false,"updatedAt":1479139943241}]%
 ```
 
-### Get one Todo
+### Get one question
 
 ```bash
 # Replace the <id> part with a real id from your questions table
@@ -61,7 +61,7 @@ Example Result:
 {"text":"Learn Serverless","id":"ee6490d0-aa11e6-9ede-afdfa051af86","createdAt":1479138570824,"answered":false,"updatedAt":1479138570824}%
 ```
 
-### Update a Todo
+### Update a question
 
 ```bash
 # Replace the <id> part with a real id from your questions table

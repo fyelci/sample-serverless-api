@@ -17,7 +17,8 @@ provider:
   memorySize: 256
   logRetentionInDays: 90
   environment:
-    DYNAMODB_QUESTIONS_TABLE:  ${self:service}-${env:QUESTIONS_TABLE}-${sls:stage}
+    DYNAMODB_QUESTIONS_TABLE:  ${sls:stage}-${self:service}-${env:QUESTIONS_TABLE}
+    S3_FILES_BUCKET: ${sls:stage}-${self:service}-files
   apiGateway:
     shouldStartNameWithService: true
   iam:
@@ -32,6 +33,17 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_QUESTIONS_TABLE}"
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: S3FilesBucket
+                - '/*'
+
 
 functions:
   create:
@@ -65,6 +77,21 @@ functions:
           path: questions/{id}
           method: put
           cors: true
+  upload:
+    handler: src/handlers/upload.getSignedUrl
+    events:
+      - http:
+          path: questions/{id}/start-upload
+          method: put
+          cors: true
+  download:
+    handler: src/handlers/download.getSignedUrl
+    events:
+      - http:
+          path: questions/{id}/download
+          method: get
+          cors: true
+
 
 resources:
   Resources:
@@ -84,9 +111,10 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.DYNAMODB_QUESTIONS_TABLE}
-
-package:
-  individually: true
+    S3FilesBucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: ${self:provider.environment.S3_FILES_BUCKET}
 
 custom:
   logLevelMap:

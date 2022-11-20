@@ -1,16 +1,20 @@
+export interface Answer {
+  text: string;
+  isCorrect: boolean;
+}
+
 export interface Question {
   id: string;
+  categoryId: number;
   text: string;
-  answered: boolean;
+  answers: Answer[];
+  explanation: string;
+  isImportant: boolean;
+  image?: string;
   createdAt: number;
   updatedAt: number;
 }
 
-export interface CreateQuestionRequest {
-  text: string;
-}
+export type CreateQuestionRequest = Omit<Question, 'id' | 'createdAt' | 'updatedAt' | 'image'>;
 
-export interface UpdateQuestionRequest {
-  text: string;
-  answered: boolean;
-}
+export type UpdateQuestionRequest = Omit<Question, 'id' | 'createdAt' | 'updatedAt'>;

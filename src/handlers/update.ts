@@ -19,7 +19,7 @@ export const update: APIGatewayProxyHandler = async (
   const data: UpdateQuestionRequest = JSON.parse(event.body);
 
   // validation
-  if (typeof data.text !== 'string' || typeof data.answered !== 'boolean') {
+  if (typeof data.text !== 'string') {
     logger.error('Validation Failed', data);
     return {
       statusCode: 400,

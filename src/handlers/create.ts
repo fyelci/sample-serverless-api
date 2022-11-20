@@ -18,8 +18,8 @@ export const create: APIGatewayProxyHandler = async (
   logger.defaultMeta = { requestId: context.awsRequestId };
 
   const timestamp = new Date().getTime();
-  const data: CreateQuestionRequest = JSON.parse(event.body);
-  if (typeof data.text !== 'string') {
+  const request: CreateQuestionRequest = JSON.parse(event.body);
+  if (!request.text || !request.answers) {
     return {
       statusCode: 400,
       body: 'Validation Failed',
@@ -27,9 +27,8 @@ export const create: APIGatewayProxyHandler = async (
   }
 
   const question: Question = {
+    ...request,
     id: uuid.v1(),
-    text: data.text,
-    answered: false,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -42,7 +41,7 @@ export const create: APIGatewayProxyHandler = async (
       body: JSON.stringify(question),
     };
   } catch (err) {
-    logger.error('Error while creating todo');
+    logger.error('Error while creating question');
     return {
       statusCode: 500,
       body: 'Internal server error',
