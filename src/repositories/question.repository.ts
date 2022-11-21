@@ -7,6 +7,8 @@ import {
   PutCommandInput,
   ScanCommand,
   ScanCommandInput,
+  QueryCommand,
+  QueryCommandInput,
   UpdateCommand,
   UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
@@ -14,6 +16,8 @@ import {
 import { Question, UpdateQuestionRequest } from '../types/question.interface';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
+
+const CATEGORY_INDEX = 'CategoryIdIndex';
 
 const { questionsTable } = getConfig();
 
@@ -69,12 +73,25 @@ export async function setImagePath(id: string, image: string): Promise<void> {
   logger.info('Update result', result);
 }
 
-export async function listQuestions(): Promise<Question[]> {
-  const params: ScanCommandInput = {
-    TableName: process.env.DYNAMODB_QUESTIONS_TABLE,
-  };
-  const result = await ddbDocClient.send(new ScanCommand(params));
-  return result.Items as Question[];
+export async function listQuestions(categoryId?: number): Promise<Question[]> {
+  if (categoryId) {
+    const params: QueryCommandInput = {
+      TableName: questionsTable,
+      IndexName: CATEGORY_INDEX,
+      KeyConditionExpression: 'categoryId = :categoryId',
+      ExpressionAttributeValues: {
+        ':categoryId': categoryId,
+      },
+    };
+    const result = await ddbDocClient.send(new QueryCommand(params));
+    return result.Items as Question[];
+  } else {
+    const params: ScanCommandInput = {
+      TableName: process.env.DYNAMODB_QUESTIONS_TABLE,
+    };
+    const result = await ddbDocClient.send(new ScanCommand(params));
+    return result.Items as Question[];
+  }
 }
 
 export async function getQuestion(id: string): Promise<Question | undefined> {

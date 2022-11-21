@@ -15,7 +15,10 @@ export const list: APIGatewayProxyHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   logger.defaultMeta = { requestId: context.awsRequestId };
 
-  const questions = await listQuestions();
+  const categoryId =
+    (event.queryStringParameters && event.queryStringParameters['categoryId']) || '0';
+
+  const questions = await listQuestions(parseInt(categoryId));
 
   return {
     statusCode: 200,
