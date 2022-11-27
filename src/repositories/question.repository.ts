@@ -16,12 +16,13 @@ import {
 import { Question, UpdateQuestionRequest } from '../types/question.interface';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
+import { getDynamoDbConfig } from '../util/awsUtils';
 
 const CATEGORY_INDEX = 'CategoryIdIndex';
 
 const { questionsTable } = getConfig();
 
-const dynamoDb = new DynamoDBClient({});
+const dynamoDb = new DynamoDBClient(getDynamoDbConfig());
 const ddbDocClient = DynamoDBDocumentClient.from(dynamoDb);
 
 export async function createQuestion(question: Question): Promise<void> {

@@ -7,7 +7,7 @@ import {
 } from 'aws-lambda';
 import { logger } from '../util/logger';
 import { SignedUploadRequest } from '../types/upload.interface';
-import { getS3UploadUrl } from '../service/fileUpload.service';
+import { getS3UploadUrl } from '../services/fileUpload.service';
 import { setImagePath } from '../repositories/question.repository';
 
 export const getSignedUrl: APIGatewayProxyHandler = async (

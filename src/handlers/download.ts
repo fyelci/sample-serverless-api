@@ -6,7 +6,7 @@ import {
   Context,
 } from 'aws-lambda';
 import { logger } from '../util/logger';
-import { getS3DownloadUrl } from '../service/fileUpload.service';
+import { getS3DownloadUrl } from '../services/fileUpload.service';
 import { getQuestion } from '../repositories/question.repository';
 
 export const getSignedUrl: APIGatewayProxyHandler = async (
