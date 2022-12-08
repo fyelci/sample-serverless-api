@@ -44,6 +44,7 @@
     "prettier": "2.7.1",
     "serverless-dynamodb-local": "0.2.40",
     "serverless-offline": "11.4.0",
+    "serverless-plugin-resource-tagging": "1.2.0",
     "serverless-plugin-typescript": "2.1.4",
     "ts-jest": "29.0.3",
     "ts-node": "10.9.1",

@@ -8,6 +8,8 @@ plugins:
   - serverless-plugin-typescript
   - serverless-dynamodb-local
   - serverless-offline
+  - serverless-plugin-resource-tagging
+
 
 provider:
   name: aws
@@ -21,6 +23,9 @@ provider:
     S3_FILES_BUCKET: ${sls:stage}-${self:service}-files
   apiGateway:
     shouldStartNameWithService: true
+  stackTags:
+    ENVIRONMENT: "${sls:stage}"
+    PROJECT: "${self:service}"
   iam:
     role:
       statements:
